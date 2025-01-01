@@ -3,7 +3,7 @@ name: Publish Python Package
 on:
   push:
     branches:
-      - math_module  # Ou la branche que vous utilisez pour les publications
+      - main  # Ou la branche que vous utilisez pour les publications
 
 jobs:
   build:
