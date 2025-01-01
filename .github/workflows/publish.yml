@@ -48,4 +48,3 @@ jobs:
           # Utilisation de l'API token configuré dans les secrets GitHub
           username: __token__  # Ce champ est nécessaire mais sera rempli automatiquement par le token
           password: ${{ secrets.PYPI_API_TOKEN }}  # Remplacez par un secret GitHub contenant votre PyPI token
-
