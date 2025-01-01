@@ -112,5 +112,3 @@ Auteurs
 - **Tests** : Indications sur la façon de tester le module.
 - **Contribuer** : Comment les autres développeurs peuvent contribuer au projet.
 
-Ce fichier est maintenant prêt à être utilisé sur ton dépôt GitHub pour aider les utilisateurs à comprendre et utiliser ton module.
-
