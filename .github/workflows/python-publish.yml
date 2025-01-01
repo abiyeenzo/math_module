@@ -1,66 +1,51 @@
-# Nom du workflow
-name: Upload Python Package
+# Ce workflow publie un package Python sur PyPI lorsque une release est créée.
 
-# Déclencheur : Ce workflow s'exécute lorsqu'une release est publiée.
+name: Upload Python Package to PyPI when a Release is Created
+
 on:
   release:
-    types: [published]
-
-# Permissions pour le workflow
-permissions:
-  contents: read
+    types: [created]  # Le workflow se déclenche lorsque la release est créée.
 
 jobs:
-  release-build:
-    # Exécution sur un environnement Ubuntu
-    runs-on: ubuntu-latest
-
-    steps:
-      # Étape 1 : Vérifie le dépôt GitHub
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      # Étape 2 : Installe Python
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.x"
-
-      # Étape 3 : Installe les outils de construction et construit les distributions
-      - name: Build release distributions
-        run: |
-          python -m pip install --upgrade build
-          python -m build
-
-      # Étape 4 : Sauvegarde les distributions comme artefacts
-      - name: Upload distributions as artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: release-dists
-          path: dist/
-
   pypi-publish:
-    # Exécution après le job "release-build"
-    needs: release-build
-    runs-on: ubuntu-latest
-    permissions:
-      id-token: write
+    name: Publish release to PyPI  # Nom du job
+    runs-on: ubuntu-latest  # Environnement d'exécution sur Ubuntu
 
-    # Définition de l'environnement PyPI
+    # Définition de l'environnement de publication sur PyPI
     environment:
       name: pypi
-      url: https://pypi.org/project/math-module/
+      url: https://pypi.org/p/math_module  # Remplacez <PYPI_PACKAGE_NAME> par le nom de votre package
+
+    permissions:
+      id-token: write  # Nécessaire pour utiliser OpenID Connect avec PyPI pour les éditions de trusted publishers
 
     steps:
-      # Étape 1 : Récupère les artefacts du job précédent
-      - name: Download release distributions
-        uses: actions/download-artifact@v4
-        with:
-          name: release-dists
-          path: dist/
+      # Étape 1 : Récupère les fichiers de votre dépôt GitHub
+      - uses: actions/checkout@v4
 
-      # Étape 2 : Publie les distributions sur PyPI
-      - name: Publish to PyPI
-        uses: pypa/gh-action-pypi-publish@release/v1
+      # Étape 2 : Configure Python
+      - name: Set up Python
+        uses: actions/setup-python@v4
         with:
-          packages-dir: dist/
+          python-version: "3.x"  # Utilisation de la dernière version stable de Python
+
+      # Étape 3 : Installe les dépendances nécessaires pour la construction du package
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip  # Met à jour pip
+          pip install setuptools wheel  # Installe setuptools et wheel pour la construction du package
+
+      # Étape 4 : Construction du package Python (distributions sdist et bdist_wheel)
+      - name: Build package
+        run: |
+          python setup.py sdist bdist_wheel  # Crée les distributions source et wheel du package
+          # Alternativement, vous pouvez utiliser python -m build si vous avez un fichier pyproject.toml
+
+      # Étape 5 : Publication des distributions sur PyPI
+      - name: Publish package distributions to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1  # Action officielle pour publier sur PyPI
+        with:
+          # Utilisation de l'API token configuré dans les secrets GitHub
+          username: __token__  # Ce champ est nécessaire mais sera rempli automatiquement par le token
+          password: ${{ secrets.PYPI_API_TOKEN }}  # Remplacez par un secret GitHub contenant votre PyPI token
+
